@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"context" // New import
-	"database/sql" // New impor
+	"context" 
+	"database/sql" 
+	_ "github.com/lib/pq"
 )
 
 const version = "1.0.0"
