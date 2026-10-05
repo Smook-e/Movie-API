@@ -5,4 +5,5 @@ go 1.27.0
 require (
 	github.com/danielgtaylor/huma/v2 v2.39.1
 	github.com/julienschmidt/httprouter v1.3.0
+	github.com/lib/pq v1.12.3
 )
