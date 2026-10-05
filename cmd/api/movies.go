@@ -1,18 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"context"
 	"github.com/Smook-e/Movie-API/internal/data"
 	"github.com/danielgtaylor/huma/v2"
 	"time"
+	"regexp"
 )
 
-
-func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "create a new movie")
-}
+var (
+EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+)
 func (app *application) createMovie(ctx context.Context, input *data.CreateMovieInput) (*data.CreateMovieOutput, error) {
 	
 

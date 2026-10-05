@@ -41,6 +41,6 @@ func (app *application) routes() http.Handler {
 	}, app.createMovie)
 	// router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
 
-	return router
+	return app.recoverPanic(router)
 
 }
