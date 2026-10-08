@@ -38,8 +38,40 @@ func (app *application) routes() http.Handler {
 		Summary:     "Create a new movie",
 		Tags:        []string{"movies"},
 		Description: "Create a new movie",
+		DefaultStatus: http.StatusCreated,
 	}, app.createMovie)
-	// router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "update-movie",
+		Method:      http.MethodPut,
+		Path:        "/v1/movies/{id}",
+		Summary:     "Update a movie",
+		Tags:        []string{"movies"},
+		Description: "Update a movie by its ID",
+		Errors: 	 []int{http.StatusNotFound, http.StatusConflict},
+	}, app.updateMovie)
+	
+	huma.Register(api, huma.Operation{
+		OperationID: "patch-movies",
+		Method:      http.MethodPatch,
+		Path:        "/v1/movies/{id}",
+		Summary:     "Partially update a movie",
+		Tags:        []string{"movies"},
+		Description: "Partially update a movie by its ID",
+		Errors: 	 []int{http.StatusNotFound, http.StatusConflict},
+	}, app.patchMovie)
+	
+	huma.Register(api, huma.Operation{
+		OperationID: "delete-movie",
+		Method:      http.MethodDelete,
+		Path:        "/v1/movies/{id}",
+		Summary:     "Delete a movie",
+		Tags:        []string{"movies"},
+		Description: "Delete a movie by its ID",
+		DefaultStatus: http.StatusNoContent,
+	}, app.deleteMovie)
+
+
 
 	return app.recoverPanic(router)
 

@@ -5,45 +5,110 @@ import (
 	"context"
 	"github.com/Smook-e/Movie-API/internal/data"
 	"github.com/danielgtaylor/huma/v2"
-	"time"
 	"regexp"
 )
 
 var (
-EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 )
 func (app *application) createMovie(ctx context.Context, input *data.CreateMovieInput) (*data.CreateMovieOutput, error) {
 	
 
 	movie := &data.Movie{
-		ID:        1,
-		CreatedAt: time.Now(),
 		Runtime:   data.Runtime(input.Body.Runtime),
 		Title:     input.Body.Title,
 		Year:      input.Body.Year,
 		Genres:    input.Body.Genres,
-		Version:   1,
+	}
+	err := app.models.Movies.Insert(movie)
+	if err != nil {
+		return nil, huma.NewError(http.StatusInternalServerError, "failed to insert movie")
 	}
 
 	return &data.CreateMovieOutput{Body: *movie}, nil
 }
 
 func (app *application) getMovie(ctx context.Context, input *data.GetMovieInput) (*data.GetMovieOutput, error) {
-	if input.ID < 1 {
-		return nil, huma.NewError(http.StatusBadRequest, "invalid movie ID")
-	}
-	movie := data.Movie{ID: input.ID,
-		Title: "Drive", 
-		Year: 2011, 
-		Runtime: 100, 
-		Genres: []string{"Action", "Adventure"}, 
-		Version: 1, 
-		CreatedAt: time.Now(),
+	movie, err := app.models.Movies.Get(input.ID)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			return nil, huma.NewError(http.StatusNotFound, "movie not found")
+		}
+		return nil, huma.NewError(http.StatusInternalServerError, "failed to get movie")
 	}
 
-	return &data.GetMovieOutput{Body: movie}, nil
+	return &data.GetMovieOutput{Body: *movie}, nil
 }
 
+func (app *application) updateMovie(ctx context.Context, input *data.UpdateMovieInput) (*data.CreateMovieOutput, error) {
+
+	movie ,err := app.models.Movies.Get(input.ID)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			return nil, huma.NewError(http.StatusNotFound, "movie not found")
+		}
+		return nil, huma.NewError(http.StatusInternalServerError, "failed to get movie")
+	}
+
+	movie.Title = input.Body.Title
+	movie.Year = input.Body.Year
+	movie.Runtime = data.Runtime(input.Body.Runtime)
+	movie.Genres = input.Body.Genres
+
+	err = app.models.Movies.Update(movie)
+	if err != nil {
+		if err == data.ErrEditConflict {
+			return nil, huma.NewError(http.StatusConflict, "edit conflict. Please try again")
+		}
+		return nil, huma.NewError(http.StatusInternalServerError, "failed to update movie")
+	}
+
+	return &data.CreateMovieOutput{Body: *movie}, nil
+}
+func (app *application) patchMovie(ctx context.Context, input *data.PatchMovieInput) (*data.CreateMovieOutput, error) {
+	movie ,err := app.models.Movies.Get(input.ID)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			return nil, huma.NewError(http.StatusNotFound, "movie not found")
+		}
+		return nil, huma.NewError(http.StatusInternalServerError, "failed to get movie")
+	}
+
+	if input.Body.Title != nil {
+		movie.Title = *input.Body.Title
+	}
+	if input.Body.Year != nil {
+		movie.Year = *input.Body.Year
+	}
+	if input.Body.Runtime != nil {
+		movie.Runtime = data.Runtime(*input.Body.Runtime)
+	}
+	if input.Body.Genres != nil {
+		movie.Genres = input.Body.Genres
+	}
+
+	err = app.models.Movies.Update(movie)
+	if err != nil {
+		if err == data.ErrEditConflict {
+			return nil, huma.NewError(http.StatusConflict, "edit conflict. Please try again")
+		}
+		return nil, huma.NewError(http.StatusInternalServerError, "failed to update movie")
+	}
+
+	return &data.CreateMovieOutput{Body: *movie}, nil
+}
+
+func (app *application) deleteMovie(ctx context.Context, input *data.GetMovieInput) ( *struct{},error) {
+	err := app.models.Movies.Delete(input.ID)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			return nil, huma.NewError(http.StatusNotFound, "movie not found")
+		}
+		return nil, huma.NewError(http.StatusInternalServerError, "failed to delete movie")
+	}
+
+	return nil, nil
+}
 
 // func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
 	
