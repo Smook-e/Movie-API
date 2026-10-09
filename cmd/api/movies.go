@@ -40,6 +40,19 @@ func (app *application) getMovie(ctx context.Context, input *data.GetMovieInput)
 	return &data.GetMovieOutput{Body: *movie}, nil
 }
 
+func (app *application) listMovies(ctx context.Context, input *data.ListMoviesInput) (*data.ListMoviesOutput, error) {
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filter)
+	if err != nil {
+		return nil, huma.NewError(http.StatusInternalServerError, "failed to list movies")
+	}
+
+	output := &data.ListMoviesOutput{}
+	output.Body.Movies = movies
+	output.Body.Metadata = metadata
+
+	return output, nil
+}
+
 func (app *application) updateMovie(ctx context.Context, input *data.UpdateMovieInput) (*data.CreateMovieOutput, error) {
 
 	movie ,err := app.models.Movies.Get(input.ID)

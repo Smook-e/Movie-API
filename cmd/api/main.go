@@ -43,7 +43,6 @@ func main() {
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
 	flag.Parse()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	// loadEnv(".env")
 	cfg.db.dsn = os.Getenv("DB_DSN")
 
 	db,err := openDB(cfg)

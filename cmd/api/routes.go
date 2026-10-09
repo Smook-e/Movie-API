@@ -30,6 +30,15 @@ func (app *application) routes() http.Handler {
 		Tags:        []string{"movies"},
 		Description: "Retrieve a movie by its ID",
 	}, app.getMovie)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "list-movies",
+		Method:      http.MethodGet,
+		Path:        "/v1/movies",
+		Summary:     "List movies",
+		Tags:        []string{"movies"},
+		Description: "List movies with optional filtering and sorting",
+	}, app.listMovies)
 	
 	huma.Register(api, huma.Operation{
 		OperationID: "create-movie",
