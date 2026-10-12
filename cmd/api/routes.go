@@ -22,7 +22,15 @@ func (app *application) routes() http.Handler {
 		Description: "Check the health of the API",
 	}, app.healthcheck)
 
-	huma.Register(api, huma.Operation{
+	app.RegisterMovieRoutes(&api)
+	app.RegisterUserRoutes(&api)
+
+	return app.recoverPanic(router)
+
+}
+
+func (app *application) RegisterMovieRoutes(api *huma.API) {
+	huma.Register(*api, huma.Operation{
 		OperationID: "get-movie",
 		Method:      http.MethodGet,
 		Path:        "/v1/movies/{id}",
@@ -31,7 +39,7 @@ func (app *application) routes() http.Handler {
 		Description: "Retrieve a movie by its ID",
 	}, app.getMovie)
 
-	huma.Register(api, huma.Operation{
+	huma.Register(*api, huma.Operation{
 		OperationID: "list-movies",
 		Method:      http.MethodGet,
 		Path:        "/v1/movies",
@@ -40,7 +48,7 @@ func (app *application) routes() http.Handler {
 		Description: "List movies with optional filtering and sorting",
 	}, app.listMovies)
 	
-	huma.Register(api, huma.Operation{
+	huma.Register(*api, huma.Operation{
 		OperationID: "create-movie",
 		Method:      http.MethodPost,
 		Path:        "/v1/movies",
@@ -50,7 +58,7 @@ func (app *application) routes() http.Handler {
 		DefaultStatus: http.StatusCreated,
 	}, app.createMovie)
 
-	huma.Register(api, huma.Operation{
+	huma.Register(*api, huma.Operation{
 		OperationID: "update-movie",
 		Method:      http.MethodPut,
 		Path:        "/v1/movies/{id}",
@@ -60,7 +68,7 @@ func (app *application) routes() http.Handler {
 		Errors: 	 []int{http.StatusNotFound, http.StatusConflict},
 	}, app.updateMovie)
 	
-	huma.Register(api, huma.Operation{
+	huma.Register(*api, huma.Operation{
 		OperationID: "patch-movies",
 		Method:      http.MethodPatch,
 		Path:        "/v1/movies/{id}",
@@ -70,7 +78,7 @@ func (app *application) routes() http.Handler {
 		Errors: 	 []int{http.StatusNotFound, http.StatusConflict},
 	}, app.patchMovie)
 	
-	huma.Register(api, huma.Operation{
+	huma.Register(*api, huma.Operation{
 		OperationID: "delete-movie",
 		Method:      http.MethodDelete,
 		Path:        "/v1/movies/{id}",
@@ -80,8 +88,34 @@ func (app *application) routes() http.Handler {
 		DefaultStatus: http.StatusNoContent,
 	}, app.deleteMovie)
 
+}
 
+func (app *application) RegisterUserRoutes(api *huma.API) {
+	huma.Register(*api, huma.Operation{
+		OperationID: "create-user",
+		Method:      http.MethodPost,
+		Path:        "/v1/users",
+		Summary:     "Create a new user",
+		Tags:        []string{"users"},
+		Description: "Create a new user",
+		DefaultStatus: http.StatusCreated,
+	}, app.createUser)
 
-	return app.recoverPanic(router)
+	huma.Register(*api, huma.Operation{
+		OperationID: "get-user",
+		Method:	  http.MethodGet,
+		Path:        "/v1/users/{id}",
+		Summary:     "Get a user by ID",
+		Tags:        []string{"users"},
+		Description: "Retrieve a user by its ID",
+	}, app.getUser)
 
+	huma.Register(*api, huma.Operation{
+		OperationID: "list-users",
+		Method:	  	 http.MethodGet,
+		Path:        "/v1/users",
+		Summary:     "List users",
+		Tags:        []string{"users"},
+		Description: "List users",
+	}, app.listUsers)
 }

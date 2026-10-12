@@ -44,6 +44,16 @@ type UserCreateOutput struct {
 	} `json:"body"`
 }
 
+type UserGetIDInput struct {
+	ID int64 `path:"id" doc:"User ID"`
+}
+
+type UserGetAllOutput struct {
+	Body struct {
+		Users []User `json:"users"`
+	} `json:"body"`
+}
+
 var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 )
@@ -99,6 +109,70 @@ func (m UserModel) Insert(user *User) error {
 		return err
 	}
 	return nil
+}
+
+func (m UserModel) Get(id int64) (*User, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+	query := `
+		SELECT id, created_at, name, email, password_hash, activated, version
+		FROM users
+		WHERE id = $1`
+	var user User
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.Version,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows){
+			return nil, ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (m UserModel) GetAll() ([]User, error) {
+	query := `
+		SELECT id, created_at, name, email, password_hash, activated, version
+		FROM users`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]User, 0)
+	for rows.Next() {
+		var user User
+		err := rows.Scan(
+			&user.ID,
+			&user.CreatedAt,
+			&user.Name,
+			&user.Email,
+			&user.Password.hash,
+			&user.Activated,
+			&user.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (m UserModel) GetByEmail(email string) (*User, error) {
