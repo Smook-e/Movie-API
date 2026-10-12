@@ -13,6 +13,7 @@ services:
       retries: 5
   migrate:
     image: migrate/migrate
+    env_file: .env
     volumes:
       - ./migrations:/migrations
     command: ["-path", "/migrations", "-database", "${DB_DSN}", "up"]

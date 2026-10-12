@@ -13,6 +13,9 @@ func (app *application) createUser(ctx context.Context, input *data.UserCreateIn
 		Email:     input.Body.Email,
 		Activated: false,
 	}
+	if !data.ValidateEmail(input.Body.Email) {
+		return nil, huma.NewError(http.StatusBadRequest, "Please provide a valid email address")
+	}
 	err := user.Password.Set(input.Body.Password)
 	if err != nil {
 		return nil, huma.NewError(http.StatusInternalServerError, "failed to set password")
